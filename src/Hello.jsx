@@ -30,11 +30,12 @@ export default class Hello extends React.Component {
     if (!this.state.clicker) {
       this.startRecording();
       if (this.count === -1) {
-        fetch("http://127.0.0.1:3800/data")
+        fetch("https://hackmoscow-api.herokuapp.com/data")
           .then(res => {
             return res.json();
           })
           .then(data => {
+              console.log(`data`,data)
             this.setState({
               dilog: data.dialogue,
               emotions: data.emotions
@@ -78,10 +79,12 @@ export default class Hello extends React.Component {
       console.log(`speechResult`,JSON.stringify({
         speech_data:speechResult
       }))
-      fetch(`http://127.0.0.1:3800/postjson`,{
+      fetch(`https://hackmoscow-api.herokuapp.com/postjson`,{
+        mode: "cors",
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
+        
         },
        method:'POST',
         body: JSON.stringify({
