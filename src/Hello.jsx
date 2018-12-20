@@ -2,6 +2,7 @@ import React from "react";
 import { Grid, Row, Col } from "react-bootstrap";
 import Graphics from "./Graphics";
 import Dialog from "./Dialog";
+let mediaRecorder;
 
 var SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -15,7 +16,9 @@ export default class Hello extends React.Component {
     this.state = {
       checkClick: false,
       positionStatic: false,
-      items: []
+      items: [],
+      arChuncks: [],
+      url:'',
     };
 
     this.clicker = this.clicker.bind(this);
@@ -43,7 +46,33 @@ export default class Hello extends React.Component {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
+ 
     recognition.start();
+    recognition.onstart = event => {  
+      console.log(`onstart`)    
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      mediaRecorder = new window.MediaRecorder(stream);
+      mediaRecorder.start();
+
+      mediaRecorder.addEventListener("dataavailable", event => {
+        this.setState({
+          arChuncks: this.state.arChuncks.concat([event.data])
+        });
+        console.log(`audioChunks`, this.state.arChuncks);
+      });
+    });
+  }
+
+  recognition.onaudioend = event => {  
+    console.log(`onaudioend`)  
+    mediaRecorder.stop();
+    mediaRecorder.addEventListener("stop", () => {
+      const audioBlob = new Blob(this.state.arChuncks);
+      const audioUrl = URL.createObjectURL(audioBlob);
+      console.log(`audioUrl`, audioUrl);
+      this.setState({ url: audioUrl });
+    });  
+  }  
 
     recognition.onresult = event => {
       let speechResult = event.results[0][0].transcript;
@@ -54,6 +83,9 @@ export default class Hello extends React.Component {
         })
       );
       //https://hackmoscow-api.herokuapp.com/postjson
+      const formData = new FormData()
+      var blob = new Blob(this.state.arChuncks, {type: 'audio/webm;codecs=opus'});
+      formData.append('blob', new Blob(['Hello World!\n']), 'type: "audio/webm;codecs=opus"')
       fetch(`http://127.0.0.1:5000/postjson`, {
         mode: "cors",
         headers: {
