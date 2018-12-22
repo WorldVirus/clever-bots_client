@@ -22,6 +22,7 @@ export default class Hello extends React.Component {
     };
 
     this.clicker = this.clicker.bind(this);
+    this.startMenu = this.startMenu.bind(this);
   }
 
   clicker(e) {
@@ -38,7 +39,9 @@ export default class Hello extends React.Component {
       });
     }
   }
-
+// async textSender(){
+//   fetch
+// }
   startRecording() {
     let recognition = new SpeechRecognition();
 
@@ -68,6 +71,8 @@ export default class Hello extends React.Component {
     mediaRecorder.stop();
     mediaRecorder.addEventListener("stop", () => {
       const audioBlob = new Blob(this.state.arChuncks);
+      console.log(`audioBlob`,audioBlob)
+
       const audioUrl = URL.createObjectURL(audioBlob);
       console.log(`audioUrl`, audioUrl);
       this.setState({ url: audioUrl });
@@ -83,39 +88,55 @@ export default class Hello extends React.Component {
         })
       );
       //https://hackmoscow-api.herokuapp.com/postjson
-      const formData = new FormData()
-      var blob = new Blob(this.state.arChuncks, {type: 'audio/webm;codecs=opus'});
-      formData.append('blob', new Blob(['Hello World!\n']), 'type: "audio/webm;codecs=opus"')
-      fetch(`http://127.0.0.1:5000/postjson`, {
+      // Promise.all(
+      //   users.map(async user => {
+      //     const userId = await getIdFromUser(user)
+      //     console.log(userId)
+    
+      //     const capitalizedId = await capitalizeIds(userId)
+      //     console.log(capitalizedId)
+      //   })
+      // )
+      const formData = new Blob(this.state.arChuncks, {type: 'audio/wav'})
+    //  var blob = new Blob(this.state.arChuncks, {type: 'multipart/form-data'});
+     // formData.append(new Blob(['Hello World!\n']), {type: 'text/plain'})
+      // postjson
+      console.log(`formData`,formData)
+      console.log(`typeof`,typeof formData)
+
+      fetch(`http://127.0.0.1:5000/mediataker `, {
         mode: "cors",
         headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "audio/wav"
         },
         method: "POST",
-        body: JSON.stringify({ speech_data: speechResult })
+        body: formData
       })
         .then(res => {
           if (res.status === 200) {
-            return res.json();
+            console.log('dkskj')
+//return res.json();
           }
         })
-        .then(data => {
-          this.setState({
-            items: [...this.state.items, data.answer_value],
-            checkClick: false
-          });
-          console.log(`data`, this.state.items);
-        });
+        // .then(data => {
+        //   this.setState({
+        //     items: [...this.state.items, data.answer_value],
+        //     checkClick: false
+        //   });
+        //   console.log(`data`, this.state.items);
+        // });
     };
   }
-
+  startMenu(){
+    this.setState({positionStatic:false,checkClick:false,})
+  }
   render() {
     const name = "Hello, User";
     const { checkClick, positionStatic } = this.state;
     return (
       <div className="cont" style={{ top: positionStatic ? "1%" : "30%" }}>
-        <section>
+     {positionStatic? <a className="close" onClick={this.startMenu}></a>:''}
+        <section className="content_wrapper">
           <Grid>
             <Row>
               <Col md={7} mdOffset={5}>
