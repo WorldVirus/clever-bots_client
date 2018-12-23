@@ -16,7 +16,8 @@ export default class Hello extends React.Component {
     this.state = {
       checkClick: false,
       positionStatic: false,
-      items: [],
+      botAnswers: '',
+      renderAnswers:[],
       arChuncks: [],
       url:'',
     };
@@ -39,96 +40,87 @@ export default class Hello extends React.Component {
       });
     }
   }
-// async textSender(){
-//   fetch
-// }
+
+  textSender(valueSpeech) {
+    return (fetch(`http://127.0.0.1:5000/postjson`, {
+      mode: "cors",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({ speech_data: valueSpeech })
+    }).then(res => {
+      if (res.status === 200) {
+        return res.json();
+      }
+    }).then(data => {
+      if (this.state.botAnswers.length) {
+        this.setState({ botAnswers: '' });
+      }
+      this.setState({
+        botAnswers: data.answer_value,
+        renderAnswers:this.state.renderAnswers.concat([data.answer_value]),
+        checkClick: false
+      });
+    })
+    );
+  }
+
+  audioSender() {
+    const formData = new Blob(this.state.arChuncks, { type: 'audio/wav' })
+
+    return (fetch(`http://127.0.0.1:5000/mediataker `, {
+      mode: "cors",
+      headers: {
+        "Content-Type": "audio/wav"
+      },
+      method: "POST",
+      body: formData
+    })
+    )
+  }
+
   startRecording() {
     let recognition = new SpeechRecognition();
 
     recognition.lang = "ru-RU";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-
- 
     recognition.start();
-    recognition.onstart = event => {  
-      console.log(`onstart`)    
+    recognition.onstart = () => {  
       navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       mediaRecorder = new window.MediaRecorder(stream);
       mediaRecorder.start();
-
+        if(this.state.arChuncks.length){
+          this.setState({
+            arChuncks: [],
+          });
+        }
       mediaRecorder.addEventListener("dataavailable", event => {
         this.setState({
           arChuncks: this.state.arChuncks.concat([event.data])
         });
-        console.log(`audioChunks`, this.state.arChuncks);
       });
     });
   }
 
-  recognition.onaudioend = event => {  
-    console.log(`onaudioend`)  
+  recognition.onaudioend = () => {  
     mediaRecorder.stop();
     mediaRecorder.addEventListener("stop", () => {
       const audioBlob = new Blob(this.state.arChuncks);
-      console.log(`audioBlob`,audioBlob)
-
       const audioUrl = URL.createObjectURL(audioBlob);
-      console.log(`audioUrl`, audioUrl);
       this.setState({ url: audioUrl });
     });  
   }  
 
     recognition.onresult = event => {
       let speechResult = event.results[0][0].transcript;
-      console.log(
-        `speechResult`,
-        JSON.stringify({
-          speech_data: speechResult
-        })
-      );
-      //https://hackmoscow-api.herokuapp.com/postjson
-      // Promise.all(
-      //   users.map(async user => {
-      //     const userId = await getIdFromUser(user)
-      //     console.log(userId)
-    
-      //     const capitalizedId = await capitalizeIds(userId)
-      //     console.log(capitalizedId)
-      //   })
-      // )
-      const formData = new Blob(this.state.arChuncks, {type: 'audio/wav'})
-    //  var blob = new Blob(this.state.arChuncks, {type: 'multipart/form-data'});
-     // formData.append(new Blob(['Hello World!\n']), {type: 'text/plain'})
-      // postjson
-      console.log(`formData`,formData)
-      console.log(`typeof`,typeof formData)
-
-      fetch(`http://127.0.0.1:5000/mediataker `, {
-        mode: "cors",
-        headers: {
-          "Content-Type": "audio/wav"
-        },
-        method: "POST",
-        body: formData
-      })
-        .then(res => {
-          if (res.status === 200) {
-            console.log('dkskj')
-//return res.json();
-          }
-        })
-        // .then(data => {
-        //   this.setState({
-        //     items: [...this.state.items, data.answer_value],
-        //     checkClick: false
-        //   });
-        //   console.log(`data`, this.state.items);
-        // });
+       Promise.all([this.textSender(speechResult),this.audioSender()])
     };
   }
   startMenu(){
-    this.setState({positionStatic:false,checkClick:false,})
+    this.setState({positionStatic:false,checkClick:false, renderAnswers:[],})
   }
   render() {
     const name = "Hello, User";
@@ -181,7 +173,7 @@ export default class Hello extends React.Component {
                   >
                     <div className="chat-body">
                       {this.state.positionStatic ? (
-                        <Dialog items={this.state.items} />
+                        <Dialog items={this.state.renderAnswers} />
                       ) : (
                         ""
                       )}
