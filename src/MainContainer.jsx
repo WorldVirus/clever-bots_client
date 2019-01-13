@@ -2,24 +2,35 @@ import React from "react";
 import { Grid, Row, Col } from "react-bootstrap";
 import Graphics from "./Graphics";
 import Dialog from "./Dialog";
+import io from 'socket.io-client';
+import init from './audioSender'
 let mediaRecorder;
 
 var SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
-// var SpeechGrammarList = SpeechGrammarList || new webkitSpeechGrammarList();
-// var SpeechRecognitionEvent = SpeechRecognitionEvent || new webkitSpeechRecognitionEvent();
+var audioContext = new AudioContext();
 
-export default class Hello extends React.Component {
+export default class MainContainer extends React.Component {
   constructor(props) {
     super(props);
-
+    this.testChunk = [];
     this.state = {
       checkClick: false,
       positionStatic: false,
       botAnswers: '',
-      renderAnswers:[],
+      renderAnswers: [],
       arChuncks: [],
-      url:'',
+      url: '',
+      speechResult: '',
+      objEmothins: {
+        Neutral: 0,
+        Happy: 0,
+        Angry: 0,
+        Fear: 0,
+        Sad: 0,
+        not_enough: 0,
+        len: 0,
+      },
     };
 
     this.clicker = this.clicker.bind(this);
@@ -41,6 +52,95 @@ export default class Hello extends React.Component {
     }
   }
 
+  startRecording() {
+    let recognition = new SpeechRecognition();
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+    var audioInput = null,
+        realAudioInput = null,
+        inputPoint = null,
+        recording = false;
+      
+        let socket = io.connect('http://127.0.0.1:5000/audio');
+        socket.on('my response', function(msg) {
+          console.log(`msg`,msg)
+       //   $('#log').append('<p>Received: ' + msg.data + '</p>');
+      });
+      socket.emit('start-recording', {numChannels: 1, bps: 16, fps: parseInt(audioContext.sampleRate)});
+      init();
+    recognition.lang = "ru-RU";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.start();
+    recognition.onstart = () => {  
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      mediaRecorder = new window.MediaRecorder(stream);
+      mediaRecorder.start();
+        if(this.state.arChuncks.length){
+          this.setState({
+            arChuncks: [],
+          });
+        }
+      mediaRecorder.addEventListener("dataavailable", event => {
+        this.testChunk.concat([event.data])
+        this.testChunk[0] = event.data
+        console.log(`this.state.arChuncks`,this.testChunk[0].size)
+        console.log(`this.state.arChuncks`,this.testChunk)
+
+        this.setState({
+          arChuncks: this.state.arChuncks.concat([event.data])
+        });
+      });
+    });
+  }
+
+    recognition.onresult = event => {
+      console.log(`onresult`)
+      let speechResult = event.results[0][0].transcript;
+       Promise.all([this.textSender(speechResult)])
+       
+    };
+
+    recognition.onaudioend = () => {  
+      console.log(`onaudioend`)
+      mediaRecorder.stop();
+      mediaRecorder.addEventListener("stop", () => {
+        // const audioBlob = new Blob(this.state.arChuncks);
+        // const audioUrl = URL.createObjectURL(audioBlob);
+        // this.setState({ url: audioUrl });
+      });  
+    }  
+  }
+
+  startMenu(){
+    fetch(`http://127.0.0.1:5000/emotion `, {
+      mode: "cors",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+    }).then(res => {
+      if (res.status === 200) {
+        return res.json();
+      }
+    }).then(data => {
+  console.log(`data`,data)
+      this.setState({
+        positionStatic: false, 
+        objEmothins: {
+          Neutral: data.neutral,
+          Happy: data.happy,
+          Sad: data.sad,
+          Data:data.angry,
+          not_enough: data.not_enough,
+          len: data.len,
+        }
+      })
+    })
+    
+    this.setState({positionStatic:false,checkClick:false, renderAnswers:[],});
+  }
+
   textSender(valueSpeech) {
     return (fetch(`http://127.0.0.1:5000/postjson`, {
       mode: "cors",
@@ -60,7 +160,7 @@ export default class Hello extends React.Component {
       }
       this.setState({
         botAnswers: data.answer_value,
-        renderAnswers:this.state.renderAnswers.concat([data.answer_value]),
+        renderAnswers: this.state.renderAnswers.concat([data.answer_value]),
         checkClick: false
       });
     })
@@ -69,8 +169,7 @@ export default class Hello extends React.Component {
 
   audioSender() {
     const formData = new Blob(this.state.arChuncks, { type: 'audio/wav' })
-
-    return (fetch(`http://127.0.0.1:5000/mediataker `, {
+    return (fetch(`http://127.0.0.1:5000/mediataker`, {
       mode: "cors",
       headers: {
         "Content-Type": "audio/wav"
@@ -81,52 +180,26 @@ export default class Hello extends React.Component {
     )
   }
 
-  startRecording() {
-    let recognition = new SpeechRecognition();
-
-    recognition.lang = "ru-RU";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.start();
-    recognition.onstart = () => {  
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      mediaRecorder = new window.MediaRecorder(stream);
-      mediaRecorder.start();
-        if(this.state.arChuncks.length){
-          this.setState({
-            arChuncks: [],
-          });
-        }
-      mediaRecorder.addEventListener("dataavailable", event => {
-        this.setState({
-          arChuncks: this.state.arChuncks.concat([event.data])
-        });
-      });
-    });
+  sizeSender() {
+    console.log(`sizeSender`)
+    return (
+      fetch(`http://127.0.0.1:5000/size_taker`, {
+        mode: "cors",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify({ size_chunk: this.testChunk[0].size })
+      }))
   }
 
-  recognition.onaudioend = () => {  
-    mediaRecorder.stop();
-    mediaRecorder.addEventListener("stop", () => {
-      const audioBlob = new Blob(this.state.arChuncks);
-      const audioUrl = URL.createObjectURL(audioBlob);
-      this.setState({ url: audioUrl });
-    });  
-  }  
-
-    recognition.onresult = event => {
-      let speechResult = event.results[0][0].transcript;
-       Promise.all([this.textSender(speechResult),this.audioSender()])
-    };
-  }
-  startMenu(){
-    this.setState({positionStatic:false,checkClick:false, renderAnswers:[],})
-  }
   render() {
     const name = "Hello, User";
     const { checkClick, positionStatic } = this.state;
     return (
       <div className="cont" style={{ top: positionStatic ? "1%" : "30%" }}>
+      {/* <Graphics/> */}
      {positionStatic? <a className="close" onClick={this.startMenu}></a>:''}
         <section className="content_wrapper">
           <Grid>

@@ -4,14 +4,23 @@ import {Doughnut} from 'react-chartjs-2';
 
 const data = {
 	labels: [
-    'joy',
-		'annoyance',
+    'Neutral',
+		'Happy',
+    'Sad' ,
+    'Angry',
+    'Fear',
+    'Not enough sonorancy to determine emotions',
 	],
 	datasets: [{
-		data: [300, 50],
+		data: [300, 50,10,20,30,40,50,60],
 		backgroundColor: [
-		'#FF6384',
-		'#36A2EB',
+		'#009999',
+		'#66ff66',
+		'#000099',
+		'#ff3333',
+		'#cc00cc',
+		'#6A2EB',
+
 		],
 		hoverBackgroundColor: [
 		'#FF6384',

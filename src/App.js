@@ -1,5 +1,5 @@
 import React from "react";
-import Hello from "./Hello";
+import MainContainer from "./MainContainer";
 import './App.css'
 import './css/fullstack.css';
 
@@ -12,7 +12,7 @@ export default class App extends React.Component {
     render () {
         return (
                 <div className='header-contents'>
-                <Hello name="User" />
+                <MainContainer name="User" />
                 </div>
         );
     }
