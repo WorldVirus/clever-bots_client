@@ -7,7 +7,7 @@ import init from "./audioSender";
 
 const url = window.location.host.includes("localhost")
   ? "http://localhost:5000"
-  : "";
+  : "https://hackmoscow-api.herokuapp.com/";
 var SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
