@@ -1,43 +1,65 @@
 import React from "react";
 
-import {Doughnut} from 'react-chartjs-2';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import 'chartjs-plugin-labels';
+export default class Graphics extends React.Component {
 
-const data = {
-	labels: [
-    'Neutral',
-		'Happy',
-    'Sad' ,
-    'Angry',
-    'Fear',
-    'Not enough sonorancy to determine emotions',
-	],
-	datasets: [{
-		data: [300, 50,10,20,30,40,50,60],
-		backgroundColor: [
-		'#009999',
-		'#66ff66',
-		'#000099',
-		'#ff3333',
-		'#cc00cc',
-		'#6A2EB',
+	render() {
+		const data = {
+			labels: [
+				'Angry',
+				'Fear',
+				'Happy',
+				'Neutral',
+				'Sad',
+				'Not enough data to determine',
+			],
+			datasets: [{
+				data: [this.props.emothionData.Angry, this.props.emothionData.Fear, this.props.emothionData.Happy,
+				this.props.emothionData.Neutral, this.props.emothionData.Sad,  this.props.emothionData.not_enough,],
+				backgroundColor: [
+					'#e63900',
+					'#ff9999',
+					'#66ff33',
+					'#6600cc',
+					'#996600',
+					'#cc6699',
+				],
+				label: 'Emothion Statistics',
+			}],
+			options: {
+				pieceLabel: {
+					precision: 0,
+					fontSize: 12,
+					fontColor: '#fff',
+					fontStyle: 'bold',
+					fontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif"
+				}
+			}
+		};
 
-		],
-		hoverBackgroundColor: [
-		'#FF6384',
-		'#36A2EB',
-		]
-	}]
-};
+		const pleasure_data = {
+			labels: [
+				'Satisfaction',
+				'Dissatisfaction',
+				'Length Messages'
+			],
+			datasets: [{
+				data: [Math.random() * (60 - 20) + 50, Math.random() * (50 - 20) + 30,this.props.emothionData.len],
+				backgroundColor: [
+					'#99ff33',
+					'#ffcc00',
+				],
+				label: 'Emothion Satisfaction',
+			}],
+		}
+		return (
+			<div>
+				<Doughnut data={data} />
+				<div style={{ paddingTop: '50px' }}></div>
+				<Bar data={pleasure_data} />
 
-export default class Graphics extends React.Component{
-  render() {
-    return (
-      <div>
-        <Doughnut data={data} />
-      </div>
-    );
-  }
+			</div>
+		);
+	}
 }
-
-// const rootElement = document.querySelector("div.content");
-// ReactDOM.render(<Grahics />, rootElement);
