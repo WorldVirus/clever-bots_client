@@ -9,7 +9,7 @@ var scriptNode = window.scriptNode;
 var audioInput = null,
   realAudioInput = null,
   inputPoint = null;
-var socketio = io.connect("http://127.0.0.1:5000/audio");
+var socketio = io.connect("https://hackmoscow-api.herokuapp.com/audio");
 var zeroGain = window.zeroGain;
 socketio.on("add-wavefile", function(url) {
   // add new recording to page
