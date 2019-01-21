@@ -56,7 +56,7 @@ export default class MainContainer extends React.Component {
     let recognition = new SpeechRecognition();
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
-    let socket = io.connect(`${url}/audio`);
+    let socket = io.connect(`https://hackmoscow-api.herokuapp.com/audio`);
     socket.on("my response", function(msg) {
     });
     init(true);
@@ -76,7 +76,7 @@ export default class MainContainer extends React.Component {
   }
 
   startMenu() {
-    fetch(`${url}/emotion `, {
+    fetch(`https://hackmoscow-api.herokuapp.com/emotion `, {
       mode: "cors",
       headers: {
         Accept: "application/json",
@@ -111,7 +111,7 @@ export default class MainContainer extends React.Component {
   }
 
   textSender(valueSpeech) {
-    return fetch(`${url}/postjson`, {
+    return fetch(`https://hackmoscow-api.herokuapp.com/postjson`, {
       mode: "cors",
       headers: {
         Accept: "application/json",
