@@ -10,7 +10,7 @@ var audioInput = null,
   realAudioInput = null,
   inputPoint = null;
  const url = window.location.host.includes("localhost")
-? "http://localhost:5000"
+? "http://0.0.0.0:5000"
 : "https://hackmoscow-api.herokuapp.com";
 var socketio = io.connect(`${url}/audio`);
 var zeroGain = window.zeroGain;

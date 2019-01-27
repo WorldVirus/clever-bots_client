@@ -6,7 +6,7 @@ import io from "socket.io-client";
 import init from "./audioSender";
 
 const url = window.location.host.includes("localhost")
-  ? "http://localhost:5000"
+  ? "http://0.0.0.0:5000"
   : "https://hackmoscow-api.herokuapp.com";
 var SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
