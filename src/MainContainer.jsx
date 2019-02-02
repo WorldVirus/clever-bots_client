@@ -89,7 +89,8 @@ export default class MainContainer extends React.Component {
         }
       })
       .then(data => {
-        this.setState({
+        if(data.objEmothins.Neutral !== undefined ){
+        this.setState(prevState =>({
           positionStatic: false,
           objEmothins: {
             Neutral: data.neutral,
@@ -100,7 +101,13 @@ export default class MainContainer extends React.Component {
             len: data.len,
             checker: true
           }
-        });
+        }));
+      }
+      else{
+        throw "No response with data"
+      }
+      }).catch(e=>{
+        console.log(e)
       });
 
     this.setState({
@@ -140,7 +147,7 @@ export default class MainContainer extends React.Component {
   render() {
     const name = "Hello, User";
     const { checkClick, positionStatic, objEmothins } = this.state;
-    const topValue = positionStatic || objEmothins.checker === 0 ? "1%" : "30%";
+
     return (
       <div className="cont" style={{ top: objEmothins.checker || positionStatic ? "1%" : "30%" }}>
         {objEmothins.checker ? (
