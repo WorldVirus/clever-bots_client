@@ -12,7 +12,7 @@ var audioInput = null,
  const url = window.location.host.includes("localhost")
 ? "http://0.0.0.0:5000"
 : "https://hackmoscow-api.herokuapp.com";
-var socketio = io.connect(`${url}/audio`);
+var socketio = io.connect(`${url}/audio`,{transports: ['websocket']});
 var zeroGain = window.zeroGain;
 socketio.on("add-wavefile", function(url) {
   // add new recording to page
@@ -74,6 +74,7 @@ const gotStream = stream => {
     }
   };
   if (!recording) {
+    console.log(`end-recording`)
     socketio.emit("end-recording");
   }
   inputPoint.connect(scriptNode);
