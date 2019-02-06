@@ -89,7 +89,9 @@ export default class MainContainer extends React.Component {
         }
       })
       .then(data => {
-        if(data.objEmothins.Neutral !== undefined ){
+        console.log(data)
+
+        if(data.neutral !== undefined ){
         this.setState(prevState =>({
           positionStatic: false,
           objEmothins: {

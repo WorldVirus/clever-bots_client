@@ -14,9 +14,7 @@ var audioInput = null,
 : "https://hackmoscow-api.herokuapp.com";
 var socketio = io.connect(`${url}/audio`,{transports: ['websocket']});
 var zeroGain = window.zeroGain;
-socketio.on("add-wavefile", function(url) {
-  // add new recording to page
-});
+
 var recordStart = false;
 
 function convertToMono(input) {
@@ -71,6 +69,7 @@ const gotStream = stream => {
         output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
       }
       socketio.emit("write-audio", buffer);
+      console.log('write-audio',buffer)
     }
   };
   if (!recording) {
