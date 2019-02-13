@@ -7,9 +7,9 @@ export default class App extends React.Component {
 
     render () {
         return (
-                <div className='header-contents'>
+                < >
                 <MainContainer name="User" />
-                </div>
+                </>
         );
     }
 }

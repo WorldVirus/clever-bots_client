@@ -60,6 +60,7 @@ const gotStream = stream => {
 
   scriptNode = (audioContext.createScriptProcessor || audioContext.createJavaScriptNode).call(audioContext, 1024, 1, 1);
   scriptNode.onaudioprocess = audioEvent => {
+    console.log('recordin',recording)
     if (recording) {
       var input = audioEvent.inputBuffer.getChannelData(0);
       var buffer = new ArrayBuffer(input.length * 2);

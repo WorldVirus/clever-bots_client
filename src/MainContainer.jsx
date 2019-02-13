@@ -149,13 +149,12 @@ export default class MainContainer extends React.Component {
   render() {
     const name = "Hello, User";
     const { checkClick, positionStatic, objEmothins } = this.state;
-
     return (
-      <div className="cont" style={{ top: objEmothins.checker || positionStatic ? "1%" : "30%" }}>
+      <div className="cont" style={{ marginTop: objEmothins.checker || positionStatic ? "16px" : "200px" }}>
         {objEmothins.checker ? (
           <Graphics emothionData={objEmothins} />
         ) : (
-          <div>
+          <>
             {positionStatic ? (
               <a className="close" onClick={this.startMenu} />
             ) : (
@@ -223,7 +222,7 @@ export default class MainContainer extends React.Component {
                 </div>
               </div>
             </section>
-          </div>
+          </>
         )}
       </div>
     );
