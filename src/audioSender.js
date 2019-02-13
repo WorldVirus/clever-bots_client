@@ -17,7 +17,7 @@ var zeroGain = window.zeroGain;
 
 var recordStart = false;
 
-function convertToMono(input) {
+const convertToMono = (input)=> {
   var splitter = audioContext.createChannelSplitter(2);
   var merger = audioContext.createChannelMerger(2);
 
@@ -57,6 +57,7 @@ const gotStream = stream => {
   analyserNode = audioContext.createAnalyser();
   analyserNode.fftSize = 2048;
   inputPoint.connect(analyserNode);
+  console.log('recordin',recording)
 
   scriptNode = (audioContext.createScriptProcessor || audioContext.createJavaScriptNode).call(audioContext, 1024, 1, 1);
   scriptNode.onaudioprocess = audioEvent => {
@@ -88,6 +89,7 @@ const gotStream = stream => {
 
 export default function initAudio(startRecord) {
   recordStart = startRecord;
+  console.log(`initAudio`,recordStart)
   navigator.getUserMedia({ audio: true }, gotStream, e => {
     console.log(e);
   });
