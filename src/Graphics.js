@@ -1,18 +1,18 @@
 import React from "react";
 
 import { Bar, Doughnut } from 'react-chartjs-2';
-import 'chartjs-plugin-labels';
+//import 'chartjs-plugin-labels';
 export default class Graphics extends React.Component {
 
 	render() {
 		const data = {
 			labels: [
-				'Angry',
-				'Fear',
-				'Happy',
-				'Neutral',
-				'Sad',
-				'Not enough data to determine',
+				'Агрессия',
+				'Страх',
+				'Счастье',
+				'Равнодушие',
+				'Грусть',
+				'Сложно определить эмоцию',
 			],
 			datasets: [{
 				data: [this.props.emothionData.Angry, this.props.emothionData.Fear, this.props.emothionData.Happy,
@@ -25,7 +25,7 @@ export default class Graphics extends React.Component {
 					'#996600',
 					'#cc6699',
 				],
-				label: 'Emothion Statistics',
+				label: 'Статистика эмоций',
 			}],
 			options: {
 				pieceLabel: {
@@ -40,9 +40,9 @@ export default class Graphics extends React.Component {
 
 		const pleasure_data = {
 			labels: [
-				'Satisfaction',
-				'Dissatisfaction',
-				'Length Messages'
+				'Удолетворенность',
+				'Неудолетворенность',
+				// 'Длинна сообщений'
 			],
 			datasets: [{
 				data: [Math.random() * (60 - 20) + 50, Math.random() * (50 - 20) + 30,this.props.emothionData.len],
@@ -50,8 +50,25 @@ export default class Graphics extends React.Component {
 					'#99ff33',
 					'#ffcc00',
 				],
-				label: 'Emothion Satisfaction',
+				label: 'Удолетвореность диалогом',
 			}],
+			options: {
+				pieceLabel: {
+					precision: 0,
+					fontSize: 12,
+					fontColor: '#fff',
+					fontStyle: 'bold',
+					fontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif"
+				},
+				scales: {
+					xAxes: [{
+						stacked: true
+					}],
+					yAxes: [{
+						stacked: true
+					}]
+				}
+			}
 		}
 		return (
 			<div>

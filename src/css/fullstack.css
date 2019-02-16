@@ -355,7 +355,7 @@
     width: 32px;
     height: 32px;
     opacity: 0.3;
-    margin-top: 16px;
+    margin-top: -13px;
   }
   .close:hover {
     opacity: 1;

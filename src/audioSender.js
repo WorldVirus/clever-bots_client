@@ -57,11 +57,13 @@ const gotStream = stream => {
   analyserNode = audioContext.createAnalyser();
   analyserNode.fftSize = 2048;
   inputPoint.connect(analyserNode);
-  console.log('recordin',recording)
-
+    if(audioContext.state === 'suspended'){
+      audioContext.resume().then(function() {
+      });
+    }
   scriptNode = (audioContext.createScriptProcessor || audioContext.createJavaScriptNode).call(audioContext, 1024, 1, 1);
+
   scriptNode.onaudioprocess = audioEvent => {
-    console.log('recordin',recording)
     if (recording) {
       var input = audioEvent.inputBuffer.getChannelData(0);
       var buffer = new ArrayBuffer(input.length * 2);
@@ -71,11 +73,13 @@ const gotStream = stream => {
         output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
       }
       socketio.emit("write-audio", buffer);
-      console.log('write-audio',buffer)
+    } 
+    else{
+      audioContext.suspend()
     }
   };
+
   if (!recording) {
-    console.log(`end-recording`)
     socketio.emit("end-recording");
   }
   inputPoint.connect(scriptNode);
@@ -89,7 +93,6 @@ const gotStream = stream => {
 
 export default function initAudio(startRecord) {
   recordStart = startRecord;
-  console.log(`initAudio`,recordStart)
   navigator.getUserMedia({ audio: true }, gotStream, e => {
     console.log(e);
   });

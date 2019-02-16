@@ -21,14 +21,15 @@ export default class MainContainer extends React.Component {
       botAnswers: "",
       renderAnswers: [],
       speechResult: "",
+      disableFlag:true,
       objEmothins: {
-        Neutral: 100,
-        Happy: 10,
-        Angry: 10,
-        Fear: 10,
-        Sad: 10,
-        not_enough: 10,
-        len: 10,
+        Neutral: 0,
+        Happy: 0,
+        Angry: 0,
+        Fear: 0,
+        Sad: 0,
+        not_enough: 0,
+        len: 0,
         checker: false
       }
     };
@@ -60,18 +61,26 @@ export default class MainContainer extends React.Component {
     socket.on("my response", function(msg) {
     });
     init(true);
+    this.setState({
+      disableFlag:true,
+    })
     recognition.lang = "ru-RU";
     recognition.interimResults = false;
     recognition.maxAlternatives = 2;
     recognition.start();
 
     recognition.onresult = event => {
+      console.log(`onresult`)
       let speechResult = event.results[0][0].transcript;
       Promise.all([this.textSender(speechResult)]);
     };
 
     recognition.onaudioend = () => {
+      console.log(`onaudioend`)
       init(false);
+      this.setState({
+        disableFlag:false,
+      })
     };
   }
 
@@ -92,7 +101,7 @@ export default class MainContainer extends React.Component {
         console.log(data)
 
         if(data.neutral !== undefined ){
-        this.setState(prevState =>({
+        this.setState({
           positionStatic: false,
           objEmothins: {
             Neutral: data.neutral,
@@ -103,7 +112,7 @@ export default class MainContainer extends React.Component {
             len: data.len,
             checker: true
           }
-        }));
+        });
       }
       else{
         throw "No response with data"
@@ -147,8 +156,8 @@ export default class MainContainer extends React.Component {
   }
 
   render() {
-    const name = "Hello, User";
-    const { checkClick, positionStatic, objEmothins } = this.state;
+    const name = "Привет !";
+    const { checkClick, positionStatic, objEmothins,disableFlag } = this.state;
     return (
       <div className="cont" style={{ marginTop: objEmothins.checker || positionStatic ? "16px" : "200px" }}>
         {objEmothins.checker ? (
@@ -156,7 +165,7 @@ export default class MainContainer extends React.Component {
         ) : (
           <>
             {positionStatic ? (
-              <a className="close" onClick={this.startMenu} />
+              <button className="close" disabled= {disableFlag} onClick={this.startMenu} />
             ) : (
               ""
             )}
