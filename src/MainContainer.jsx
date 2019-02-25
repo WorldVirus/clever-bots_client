@@ -4,7 +4,7 @@ import Graphics from "./Graphics";
 import Dialog from "./Dialog";
 import io from "socket.io-client";
 import init from "./audioSender";
-
+import Poppup from './Poppup'
 const url = window.location.host.includes("localhost")
   ? "http://0.0.0.0:5000"
   : "https://hackmoscow-api.herokuapp.com";
@@ -14,14 +14,15 @@ var SpeechRecognition =
 export default class MainContainer extends React.Component {
   constructor(props) {
     super(props);
-    this.testChunk = [];
+    this.testSender = false;
     this.state = {
       checkClick: false,
       positionStatic: false,
+      poppupFlag: false,
       botAnswers: "",
-      renderAnswers: [],
+      renderAnswers: ['Добро пожаловать в наш банк.'],
       speechResult: "",
-      disableFlag:true,
+      disableFlag: true,
       objEmothins: {
         Neutral: 0,
         Happy: 0,
@@ -54,34 +55,44 @@ export default class MainContainer extends React.Component {
   }
 
   startRecording() {
-    let recognition = new SpeechRecognition();
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-
-    let socket = io.connect(`${url}/audio`);
-    socket.on("my response", function(msg) {
-    });
-    init(true);
-    this.setState({
-      disableFlag:true,
-    })
-    recognition.lang = "ru-RU";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 2;
-    recognition.start();
-
-    recognition.onresult = event => {
-      console.log(`onresult`)
-      let speechResult = event.results[0][0].transcript;
-      Promise.all([this.textSender(speechResult)]);
-    };
-
-    recognition.onaudioend = () => {
-      console.log(`onaudioend`)
-      init(false);
+    try {
+      let recognition = new SpeechRecognition();
+      let socket = io.connect(`${url}/audio`);
+      socket.on("my response", function (msg) {
+      });
+      init(true);
       this.setState({
-        disableFlag:false,
+        disableFlag: true,
       })
-    };
+      recognition.lang = "ru-RU";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 2;
+      recognition.start();
+
+      recognition.onresult = event => {
+        let speechResult = event.results[0][0].transcript;
+        this.testSender = true;
+        Promise.all([this.textSender(speechResult)]);
+      };
+      recognition.onend = () => {
+        if (!this.testSender) {
+          this.setState({
+            renderAnswers: this.state.renderAnswers.concat(['Повторите фразу, вас неслышно.']),
+          })
+        } else {
+          this.testSender = false;
+        }
+      };
+      recognition.onaudioend = () => {
+        init(false);
+        this.setState({
+          checkClick: false,
+          disableFlag: false,
+        })
+      };
+    } catch {
+      this.setState({ poppupFlag: true })
+    }
   }
 
   startMenu() {
@@ -98,26 +109,24 @@ export default class MainContainer extends React.Component {
         }
       })
       .then(data => {
-        console.log(data)
-
-        if(data.neutral !== undefined ){
-        this.setState({
-          positionStatic: false,
-          objEmothins: {
-            Neutral: data.neutral,
-            Happy: data.happy,
-            Sad: data.sad,
-            Data: data.angry,
-            not_enough: data.not_enough,
-            len: data.len,
-            checker: true
-          }
-        });
-      }
-      else{
-        throw "No response with data"
-      }
-      }).catch(e=>{
+        if (data.neutral !== undefined) {
+          this.setState({
+            positionStatic: false,
+            objEmothins: {
+              Neutral: data.neutral,
+              Happy: data.happy,
+              Sad: data.sad,
+              Data: data.angry,
+              not_enough: data.not_enough,
+              len: data.len,
+              checker: true
+            }
+          });
+        }
+        else {
+          throw "No response with data"
+        }
+      }).catch(e => {
         console.log(e)
       });
 
@@ -149,90 +158,92 @@ export default class MainContainer extends React.Component {
         }
         this.setState({
           botAnswers: data.answer_value,
-          renderAnswers: this.state.renderAnswers.concat([data.answer_value]),
-          checkClick: false
+          renderAnswers: this.state.renderAnswers.concat([data.answer_value])
         });
       });
   }
 
   render() {
     const name = "Привет !";
-    const { checkClick, positionStatic, objEmothins,disableFlag } = this.state;
+    const { checkClick, positionStatic, objEmothins, disableFlag, poppupFlag } = this.state;
     return (
       <div className="cont" style={{ marginTop: objEmothins.checker || positionStatic ? "16px" : "200px" }}>
+
         {objEmothins.checker ? (
           <Graphics emothionData={objEmothins} />
         ) : (
-          <>
-            {positionStatic ? (
-              <button className="close" disabled= {disableFlag} onClick={this.startMenu} />
-            ) : (
-              ""
-            )}
-            <section className="content_wrapper">
-              <Grid>
-                <Row>
-                  <Col md={7} mdOffset={5}>
-                    <h1 style={{ fontSize: positionStatic ? "30px" : "65px" }}>
-                      {name}
-                    </h1>
-                  </Col>
-                </Row>
+            <>
+              {positionStatic ? (
+                <button className="close" disabled={disableFlag} onClick={this.startMenu} />
+              ) : (
+                  ""
+                )}
+              <section className="content_wrapper">
+                <Grid>
+                  <Row>
+                    <Col md={7} mdOffset={5}>
+                      <h1 style={{ fontSize: positionStatic ? "30px" : "65px" }}>
+                        {name}
+                      </h1>
+                    </Col>
+                  </Row>
 
-                <Row>
-                  <Col md={7} mdOffset={5} style={{ paddingTop: "15px" }}>
-                    <button
-                      style={{
-                        backgroundColor: checkClick ? "#d9534f" : "#28a745"
-                      }}
-                      type="button"
-                      onClick={this.clicker}
-                      className={`btn btn-success btn-circle btn-xl${
-                        checkClick ? " btn-click-red" : ""
-                      }`}
-                    >
-                      <i className="fa fa-phone" />{" "}
-                    </button>
-                  </Col>
-                </Row>
-              </Grid>
-
-              <div className="dialog-wrapper">
-                <div className="div-wrapper-line" />
-                <div className="dialog-wrapper-content">
-                  <div className="content container-fluid bootstrap snippets">
-                    <div className="row row-broken">
-                      <div
-                        className="col-inside-lg decor-default chat"
+                  <Row>
+                    <Col md={7} mdOffset={5} style={{ paddingTop: "15px" }}>
+                      <button
                         style={{
-                          overflow: "hidden",
-                          outline: "none",
-                          backgroundColor: "unset",
-                          height: "unset"
+                          backgroundColor: checkClick ? "#d9534f" : "#28a745"
                         }}
-                        tabIndex="5000"
+                        type="button"
+                        onClick={this.clicker}
+                        className={`btn btn-success btn-circle btn-xl${
+                          checkClick ? " btn-click-red" : ""
+                          }`}
                       >
-                        <div className="chat-body">
-                          {this.state.positionStatic ? (
-                            <Dialog items={this.state.renderAnswers} />
-                          ) : (
-                            ""
-                          )}
-                          <div id="project-wrapper">
-                            <div id="project-container">
-                              <div id="overlay" />
-                              <div id="content" />
+                        <i className="fa fa-phone" />{" "}
+                      </button>
+                    </Col>
+                  </Row>
+                </Grid>
+                {poppupFlag ? (<Poppup />) :
+                  <div className="dialog-wrapper">
+                    <div className="div-wrapper-line" />
+                    <div className="dialog-wrapper-content">
+                      <div className="content container-fluid bootstrap snippets">
+                        <div className="row row-broken">
+                          <div
+                            className="col-inside-lg decor-default chat"
+                            style={{
+                              overflow: "hidden",
+                              outline: "none",
+                              backgroundColor: "unset",
+                              height: "unset"
+                            }}
+                            tabIndex="5000"
+                          >
+                            <p style={{ visibility: checkClick ? 'visible' : 'hidden' }} className='description'>Запись...</p>
+                            <div className="chat-body">
+                              {this.state.positionStatic ? (
+                                <Dialog items={this.state.renderAnswers} />
+                              ) : (
+                                  ""
+                                )}
+                              <div id="project-wrapper">
+                                <div id="project-container">
+                                  <div id="overlay" />
+                                  <div id="content" />
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </section>
-          </>
-        )}
+                }
+              </section>
+            </>
+          )}
       </div>
     );
   }

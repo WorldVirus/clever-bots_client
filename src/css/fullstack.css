@@ -374,4 +374,8 @@
   .close:after {
     transform: rotate(-45deg);
   }
-  
+  .description{
+    color: #ccc;
+    padding: 0px 0px 15px 15px;
+    float:left;
+  }
